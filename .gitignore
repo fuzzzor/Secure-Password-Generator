@@ -15,3 +15,4 @@ env/
 build/
 dist/
 *.spec
+*.exe
