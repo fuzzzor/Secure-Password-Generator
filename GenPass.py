@@ -15,15 +15,16 @@ from tkhtmlview import HTMLLabel
 from Crypto.Cipher import AES
 import configparser
 import os
+import sys
 
 # Configuration paths
 CONFIG_DIR = os.path.join(os.environ['LOCALAPPDATA'], 'Genpass')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'genpass.ini')
-CURRENT_THEME = "dark"
+CURRENT_THEME = "system"
 APP_VERSION = "v1.1"
 
 # Configuration initiale
-ctk.set_appearance_mode("dark")  # Mode sombre par défaut
+ctk.set_appearance_mode("system")  # Mode système par défaut
 ctk.set_default_color_theme("green")
 
 # Fonction pour centrer la fenêtre principale au centre de l'écran
@@ -38,7 +39,23 @@ def center_window(Screen: ctk, width: int, height: int, scale_factor: float = 1)
 # Creation de la fenetre principale
 root = ctk.CTk()
 root.title(f"Secure Password Generator {APP_VERSION}")
-root.iconbitmap("icone.ico")
+
+# Gestion de l'icône compatible avec PyInstaller --onefile
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+try:
+    root.iconbitmap(resource_path("icone.ico"))
+except Exception:
+    pass # Si l'icone n'est pas trouvée, on continue sans
+
 root.geometry(center_window(root, 450, 790, root._get_window_scaling()))
 root.resizable(False, False)
 custom_font = ctk.CTkFont(family="Bauhaus 93", size=26, weight="bold")
@@ -87,16 +104,16 @@ def load_config():
         settings = config['Settings']
         
         # Theme
-        theme = settings.get('Theme', 'dark')
+        theme = settings.get('Theme', 'system')
         set_theme(theme, save=False)
         
         # Length
         length = settings.get('PasswordLength', '12')
         try:
             length_val = int(length)
-            length_var.set(length)
+            length_var.set(str(length_val)) # Force string
             length_slider.set(length_val)
-            length_label.configure(text=f"Length : {length}")
+            length_label.configure(text=f"Length : {length_val}")
         except ValueError:
             pass
         
@@ -251,7 +268,6 @@ def copy_to_clipboard():
     root.clipboard_clear()
     root.clipboard_append(result_entry.get("1.0", "end-1c"))
     countdown(15)  # Lancer le compteur à 10 secondes
-    play_sound(300,100) # Fréquence 200 Hz, durée 100 ms
     copy_button.configure(text="Copied!")
 
 # Fonction compteur pour copy
@@ -261,6 +277,7 @@ def countdown(seconds):
         root.after(1500, lambda: countdown(seconds - 1))  # Attendre 1 seconde et décrémenter
     else:
         copy_button.configure(text="Copy")
+        play_sound(300,100) # Fréquence 300 Hz, durée 100 ms
         clear_clipboard()  # Vider le presse-papier à la fin du compte à rebours
 
 # Fonction pour supprimer le presse-papier
@@ -271,8 +288,14 @@ def clear_clipboard():
 
 # Fonction pour mettre à jour le label du slider
 def update_slider_label(value):
-    length_var.set(int(value))
-    length_label.configure(text=f"Length : {int(value)}")
+    val = int(value)
+    length_var.set(val)
+    length_label.configure(text=f"Length : {val}")
+    # On ne sauvegarde pas la config ici pour éviter trop d'écritures pendant le glissement
+    # On préfère sauvegarder quand l'utilisateur relâche le slider ou quitte
+
+# Fonction appelée quand on relâche le slider
+def on_slider_release(event):
     save_config()
 
 # Affiche ou masque la passphrase
@@ -433,8 +456,9 @@ special_entry.bind("<KeyRelease>", lambda event: save_config())
 length_var = ctk.StringVar(value="12")
 length_label = ctk.CTkLabel(options_frame, text_color="#FF5733", text=f"Length : {length_var.get()}")
 length_label.pack(pady=0)
-length_slider = ctk.CTkSlider(options_frame, from_=3, to=128, number_of_steps=126, command=update_slider_label,height=25,width=250)
+length_slider = ctk.CTkSlider(options_frame, from_=3, to=128, number_of_steps=125, command=update_slider_label,height=25,width=250)
 length_slider.set(12)
+length_slider.bind("<ButtonRelease-1>", on_slider_release) # Sauvegarder au relâchement
 length_slider.pack(pady=(0, 10))
 
 
