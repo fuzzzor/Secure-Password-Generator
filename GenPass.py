@@ -21,7 +21,7 @@ import sys
 CONFIG_DIR = os.path.join(os.environ['LOCALAPPDATA'], 'Genpass')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'genpass.ini')
 CURRENT_THEME = "system"
-APP_VERSION = "v1.1"
+APP_VERSION = "v1.2"
 
 # Configuration initiale
 ctk.set_appearance_mode("system")  # Mode système par défaut
@@ -71,7 +71,11 @@ def save_config():
     config['Settings'] = {
         'Theme': CURRENT_THEME,
         'SpecialChars': special_entry.get(),
-        'PasswordLength': str(int(length_slider.get()))
+        'PasswordLength': str(int(length_slider.get())),
+        'UseUpper': str(var_upper.get()),
+        'UseLower': str(var_lower.get()),
+        'UseDigits': str(var_digits.get()),
+        'UseSpecial': str(var_special.get())
     }
     
     if not os.path.exists(CONFIG_DIR):
@@ -117,25 +121,24 @@ def load_config():
         except ValueError:
             pass
         
-        # Special Chars
+        # Upper/Lower/Digits/Special
+        var_upper.set(settings.getboolean('UseUpper', fallback=True))
+        var_lower.set(settings.getboolean('UseLower', fallback=True))
+        var_digits.set(settings.getboolean('UseDigits', fallback=True))
+        var_special.set(settings.getboolean('UseSpecial', fallback=False))
+
+        # Special Chars content
         special_chars = settings.get('SpecialChars', "!@#$%^&*()-_=+[]{}|;:,.<>?/")
-        # Garder l'état actuel pour savoir si on doit le remettre en lecture seule ou non
-        # Mais ici on veut qu'il soit toujours éditable si activé, donc on peut simplement mettre à jour le contenu
-        # et laisser toggle_specialentry gérer l'état enabled/disabled
-        was_disabled = special_entry.cget("state") == "disabled"
         
         special_entry.configure(state="normal")
         special_entry.delete(0, "end")
         special_entry.insert(0, special_chars)
         
-        if was_disabled and not var_special.get():
-             special_entry.configure(state="disabled")
-        elif not var_special.get():
-             # Si c'était activé mais que le switch est off (cas rare au chargement), on désactive
-             special_entry.configure(state="disabled")
+        # Update special_entry state based on var_special
+        if var_special.get():
+             special_entry.configure(state="normal", text_color="white", fg_color="gray20")
         else:
-             # Si le switch est on, on laisse activé
-             special_entry.configure(state="normal")
+             special_entry.configure(state="disabled", text_color="white", fg_color="gray15")
 
 # Fonction pour mettre à jour les coches du menu thème
 def update_theme_checks():
@@ -431,9 +434,9 @@ var_special = ctk.BooleanVar(value=False)
 switch_frame = ctk.CTkFrame(top_options_frame, fg_color="transparent")
 switch_frame.pack(side="left", padx=20)
 
-ctk.CTkSwitch(switch_frame, text="Uppercase", variable=var_upper).pack(anchor="w", pady=2)
-ctk.CTkSwitch(switch_frame, text="Lowercase", variable=var_lower).pack(anchor="w", pady=2)
-ctk.CTkSwitch(switch_frame, text="Numbers", variable=var_digits).pack(anchor="w", pady=2)
+ctk.CTkSwitch(switch_frame, text="Uppercase", variable=var_upper, command=save_config).pack(anchor="w", pady=2)
+ctk.CTkSwitch(switch_frame, text="Lowercase", variable=var_lower, command=save_config).pack(anchor="w", pady=2)
+ctk.CTkSwitch(switch_frame, text="Numbers", variable=var_digits, command=save_config).pack(anchor="w", pady=2)
 ctk.CTkSwitch(switch_frame, text="Special characters", variable=var_special,command=toggle_specialentry).pack(anchor="w", pady=2)
 
 # Image à droite
