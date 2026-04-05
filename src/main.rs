@@ -138,7 +138,7 @@ fn main() -> Result<(), slint::PlatformError> {
         let use_digits = ui.get_use_digits();
         let use_special = ui.get_use_special();
         let special_chars = ui.get_special_chars();
-        let length = ui.get_length() as usize;
+        let length = ui.get_length().round() as usize;
         let mode = ui.get_mode();
         let passphrase = ui.get_passphrase();
 
