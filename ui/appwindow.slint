@@ -1,0 +1,721 @@
+import { Button, HorizontalBox, VerticalBox, TextEdit, ScrollView } from "std-widgets.slint";
+
+global Theme {
+    in-out property <string> mode: "dark";
+    
+    out property <color> background: mode == "light" ? #f0f0f0 : #1e1e1e;
+    out property <color> panel-background: mode == "light" ? #ffffff : #2b2b2b;
+    out property <color> text-orange: mode == "light" ? #d35400 : #E05A47;
+    out property <color> text-green: #2ecc71;
+    out property <color> accent-green: #2ecc71;
+    out property <color> control-bg: mode == "light" ? #e0e0e0 : #333333;
+    out property <color> text-main: mode == "light" ? #000000 : #ffffff;
+    out property <color> text-white: mode == "light" ? #000000 : #ffffff;
+    out property <color> switch-on: #2ecc71;
+    out property <color> switch-off: mode == "light" ? #bdc3c7 : #7f8c8d;
+    out property <color> button-pressed: #219150;
+    out property <color> popup-bg: mode == "light" ? #f0f0f0 : #000000;
+    out property <color> border: mode == "light" ? #cccccc : #555555;
+}
+
+component CustomButton inherits Rectangle {
+    in property <string> text;
+    callback clicked;
+    
+    border-radius: 6px;
+    background: touch.pressed ? Theme.button-pressed : Theme.accent-green;
+    height: 45px;
+    
+    Text {
+        text: root.text;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 16px;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+    
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+    }
+    
+    animate background { duration: 100ms; }
+}
+
+component CustomSwitch inherits Rectangle {
+    in property <string> text;
+    in-out property <bool> checked;
+    callback toggled;
+    
+    height: 24px;
+    background: transparent;
+    
+    HorizontalLayout {
+        spacing: 10px;
+        Rectangle {
+            width: 44px;
+            height: 24px;
+            border-radius: 12px;
+            background: root.checked ? Theme.switch-on : Theme.switch-off;
+            
+            Rectangle {
+                x: root.checked ? parent.width - self.width - 2px : 2px;
+                y: 2px;
+                width: 20px;
+                height: 20px;
+                border-radius: 10px;
+                background: #ffffff;
+                animate x { duration: 200ms; easing: ease-in-out; }
+            }
+            
+            TouchArea {
+                clicked => { 
+                    root.checked = !root.checked;
+                    root.toggled();
+                }
+            }
+        }
+        
+        Text {
+            text: root.text;
+            color: Theme.text-main;
+            vertical-alignment: center;
+            font-size: 14px;
+        }
+    }
+}
+
+component RadioButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> selected;
+    callback clicked;
+    
+    height: 30px;
+    width: 100px;
+    
+    HorizontalLayout {
+        spacing: 10px;
+        Rectangle {
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            border-width: 2px;
+            border-color: root.selected ? Theme.accent-green : #666;
+            background: transparent;
+            y: (parent.height - self.height)/2;
+            
+            Rectangle {
+                width: 14px;
+                height: 14px;
+                x: (parent.width - self.width)/2;
+                y: (parent.height - self.height)/2;
+                border-radius: 7px;
+                background: Theme.accent-green;
+                visible: root.selected;
+            }
+        }
+        Text {
+            text: root.text;
+            color: Theme.text-main;
+            vertical-alignment: center;
+            font-size: 14px;
+        }
+    }
+    TouchArea {
+        clicked => { root.clicked(); }
+    }
+}
+
+component CustomSlider inherits Rectangle {
+    in-out property <float> value;
+    in property <float> minimum;
+    in property <float> maximum;
+    callback changed;
+    
+    height: 24px;
+    
+    // Track
+    Rectangle {
+        height: 8px;
+        width: parent.width;
+        border-radius: 4px;
+        background: Theme.switch-off;
+        y: (parent.height - self.height)/2;
+        
+        // Fill
+        Rectangle {
+            x: 0;
+            width: (root.value - root.minimum) / (root.maximum - root.minimum) * parent.width;
+            height: 100%;
+            border-radius: 4px;
+            background: Theme.accent-green;
+        }
+    }
+    
+    // Handle
+    Rectangle {
+        width: 24px;
+        height: 24px;
+        border-radius: 12px;
+        background: Theme.accent-green;
+        x: (root.value - root.minimum) / (root.maximum - root.minimum) * (parent.width - self.width);
+        y: (parent.height - self.height)/2;
+    }
+    
+    TouchArea {
+        moved => {
+            root.value = Math.max(root.minimum, Math.min(root.maximum, 
+                root.minimum + (self.mouse-x / (parent.width)) * (root.maximum - root.minimum)
+            ));
+        }
+        clicked => {
+             root.value = Math.max(root.minimum, Math.min(root.maximum, 
+                root.minimum + (self.mouse-x / (parent.width)) * (root.maximum - root.minimum)
+            ));
+            root.changed();
+        }
+    }
+}
+
+component MenuItem inherits Rectangle {
+    in property <string> text;
+    callback clicked;
+    height: 30px;
+    background: hover.has-hover ? Theme.accent-green : transparent;
+    
+    HorizontalLayout {
+        padding-left: 10px;
+        Text {
+            text: root.text;
+            color: Theme.text-main;
+            vertical-alignment: center;
+            font-size: 14px;
+        }
+    }
+    
+    hover := TouchArea {
+        clicked => { root.clicked(); }
+    }
+}
+
+export component AppWindow inherits Window {
+    title: "Secure Password Generator v1.3";
+    background: Theme.background;
+    icon: @image-url("icon.png");
+    min-width: 450px;
+    min-height: 800px;
+    
+    // Properties
+    in-out property <bool> use-upper: true;
+    in-out property <bool> use-lower: true;
+    in-out property <bool> use-digits: true;
+    in-out property <bool> use-special: false;
+    in-out property <string> special-chars: "!@#$%^&*()-_=+[]{}|;:,.<>?/";
+    in-out property <float> length: 12.0;
+    in-out property <string> mode: "Fixed"; 
+    in-out property <string> passphrase: "";
+    in-out property <bool> show-passphrase: false;
+    
+    in-out property <string> generated-password: "";
+    in-out property <float> entropy-value: 0.0;
+    in-out property <string> entropy-text: "0 bits - Weak";
+    in-out property <brush> entropy-color: #E05A47;
+    in-out property <string> copy-button-text: "Copy";
+
+    // Menu States
+    in-out property <bool> show-options-menu: false;
+    in-out property <bool> show-theme-menu: false;
+    in-out property <bool> show-help-menu: false;
+    
+    // Popup States
+    in-out property <bool> show-help-popup: false;
+    in-out property <bool> show-about-popup: false;
+
+    in-out property <string> theme-mode <=> Theme.mode;
+
+    // Callbacks
+    callback generate-password();
+    callback copy-to-clipboard();
+    callback menu-action(string);
+    callback settings-changed();
+
+    Rectangle {
+        background: Theme.background;
+        
+        VerticalBox {
+            padding: 20px;
+            spacing: 20px;
+            
+            // Header
+            Rectangle {
+                height: 40px;
+                background: Theme.panel-background;
+                border-radius: 8px;
+
+                HorizontalLayout {
+                    padding-left: 10px;
+                    padding-right: 10px;
+                    spacing: 20px;
+                    
+                    // Options Menu Trigger
+                    Rectangle {
+                        width: 70px;
+                        Text { text: "Options"; color: Theme.accent-green; font-size: 16px; font-weight: 500; vertical-alignment: center; }
+                        TouchArea { clicked => { root.show-options-menu = !root.show-options-menu; root.show-help-menu = false; } }
+                    }
+                    
+                    // Help Menu Trigger (moved to left)
+                    Rectangle {
+                        width: 30px;
+                        Text { text: "?"; color: Theme.accent-green; font-size: 16px; font-weight: 500; vertical-alignment: center; horizontal-alignment: center; }
+                        TouchArea { clicked => { root.show-help-menu = !root.show-help-menu; root.show-options-menu = false; } }
+                    }
+                    
+                    Rectangle { horizontal-stretch: 1; }
+                }
+            }
+            
+            // Passphrase Frame
+            Rectangle {
+                background: transparent;
+                border-radius: 8px;
+                border-width: 1px;
+                border-color: #555;
+                
+                VerticalBox {
+                    padding: 10px;
+                    spacing: 10px;
+                    Text { 
+                        text: "Passphrase :"; 
+                        color: Theme.text-orange; 
+                        horizontal-alignment: center; 
+                        font-size: 16px;
+                    }
+                    
+                    HorizontalLayout {
+                        height: 45px;
+                        
+                        Rectangle {
+                            background: Theme.control-bg;
+                            border-radius: 6px;
+                            border-width: 1px;
+                            border-color: #555;
+                            horizontal-stretch: 1;
+                            
+                            TextInput {
+                                text <=> root.passphrase;
+                                input-type: root.show-passphrase ? text : password;
+                                color: Theme.text-main;
+                                font-size: 16px;
+                                vertical-alignment: center;
+                                x: 10px;
+                                width: parent.width - 50px;
+                                enabled: root.mode == "Fixed";
+                                single-line: true;
+                                accepted => { root.generate-password(); }
+                            }
+                            
+                            if (root.passphrase == "") : Text {
+                                text: "Enter passphrase...";
+                                color: #777;
+                                x: 10px;
+                                vertical-alignment: center;
+                                visible: root.mode == "Fixed";
+                                font-size: 16px;
+                            }
+                            
+                            // Eye Button Inside
+                            Rectangle {
+                                x: parent.width - 40px;
+                                width: 40px;
+                                height: 100%;
+                                background: transparent;
+                                Text { 
+                                    text: "👁"; 
+                                    color: root.show-passphrase ? Theme.accent-green : #888; 
+                                    vertical-alignment: center; 
+                                    horizontal-alignment: center;
+                                    font-size: 20px;
+                                }
+                                TouchArea {
+                                    clicked => { root.show-passphrase = !root.show-passphrase; }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Options Frame (Switches + Icon + Length)
+            Rectangle {
+                background: transparent;
+                border-radius: 8px;
+                border-width: 1px;
+                border-color: #555;
+                
+                VerticalBox {
+                    padding: 10px;
+                    spacing: 15px;
+                    
+                    // Options Grid
+                    HorizontalLayout {
+                        spacing: 20px;
+                        
+                        // Left Column: Switches
+                        VerticalLayout {
+                            spacing: 15px;
+                            alignment: start;
+                            horizontal-stretch: 1;
+                            
+                            CustomSwitch { text: "Uppercase"; checked <=> root.use-upper; toggled => { root.settings-changed(); } }
+                            CustomSwitch { text: "Lowercase"; checked <=> root.use-lower; toggled => { root.settings-changed(); } }
+                            CustomSwitch { text: "Numbers"; checked <=> root.use-digits; toggled => { root.settings-changed(); } }
+                            CustomSwitch { text: "Special characters"; checked <=> root.use-special; toggled => { root.settings-changed(); } }
+                            
+                            Rectangle {
+                                height: 35px;
+                                background: Theme.control-bg;
+                                border-radius: 4px;
+                                border-width: 1px;
+                                border-color: #555;
+                                TextInput {
+                                    text <=> root.special-chars;
+                                    enabled: root.use-special;
+                                    color: Theme.text-main;
+                                    vertical-alignment: center;
+                                    x: 5px;
+                                    width: parent.width - 10px;
+                                    single-line: true;
+                                    edited => { root.settings-changed(); }
+                                }
+                            }
+                        }
+                        
+                        // Right Column: Logo
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: 2px;
+                            alignment: center;
+                            
+                            Text {
+                                text: "Password\nGenerator";
+                                color: Theme.text-green;
+                                font-size: 24px;
+                                font-family: "Bauhaus 93";
+                                font-weight: 700;
+                                horizontal-alignment: center;
+                                width: 140px;
+                            }
+                            
+                            Rectangle {
+                                width: 140px;
+                                height: 140px;
+                                
+                                Image {
+                                    source: @image-url("logo.png");
+                                    width: 100%;
+                                    height: 100%;
+                                    image-fit: contain;
+                                }
+                            }
+                        }
+                    }
+
+                    // Length (Moved Inside Frame)
+                    VerticalLayout {
+                        spacing: 10px;
+                        Text { 
+                            text: "Length : " + Math.round(root.length); 
+                            color: Theme.text-orange; 
+                            horizontal-alignment: center; 
+                            font-size: 16px;
+                        }
+                        
+                        CustomSlider {
+                            minimum: 3;
+                            maximum: 128;
+                            value <=> root.length;
+                            changed => { root.settings-changed(); }
+                        }
+                    }
+                }
+            }
+            
+            // Mode
+            Rectangle {
+                background: Theme.panel-background;
+                border-radius: 10px;
+                height: 100px;
+                
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 15px;
+                    
+                    Text { 
+                        text: "Mode :"; 
+                        color: Theme.text-orange; 
+                        horizontal-alignment: center; 
+                        font-size: 16px;
+                    }
+                    
+                    HorizontalLayout {
+                        alignment: center;
+                        spacing: 40px;
+                        RadioButton { 
+                            text: "Fixed"; 
+                            selected: root.mode == "Fixed"; 
+                            clicked => { root.mode = "Fixed"; root.settings-changed(); } 
+                        }
+                        RadioButton { 
+                            text: "Random"; 
+                            selected: root.mode == "Random"; 
+                            clicked => { root.mode = "Random"; root.settings-changed(); } 
+                        }
+                    }
+                }
+            }
+            
+            // Password Output
+            Rectangle {
+                background: Theme.panel-background;
+                border-radius: 10px;
+                vertical-stretch: 0.5; 
+                
+                VerticalBox {
+                    padding: 15px;
+                    spacing: 15px;
+                    
+                    Text { 
+                        text: "Password :"; 
+                        color: Theme.text-orange; 
+                        horizontal-alignment: center; 
+                        font-size: 16px;
+                    }
+                    
+                    Rectangle {
+                        background: Theme.control-bg; 
+                        border-radius: 8px;
+                        vertical-stretch: 1;
+                        height: 110px;
+                        
+                        // Result Text
+                        Rectangle {
+                            x: 10px; width: parent.width - 20px;
+                            y: 10px; height: parent.height - 25px;
+                            
+                            ScrollView {
+                                width: 100%;
+                                height: 100%;
+                                viewport-width: parent.width;
+                                
+                                Text {
+                                    width: parent.width;
+                                    text: root.generated-password;
+                                    font-size: 18px;
+                                    wrap: word-wrap;
+                                    color: Theme.text-main;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+                        
+                        // Green bar
+                        Rectangle {
+                            y: parent.height - 10px;
+                            height: 10px;
+                            background: Theme.accent-green;
+                            width: 100%;
+                            border-bottom-left-radius: 8px;
+                            border-bottom-right-radius: 8px;
+                        }
+                    }
+                    
+                    // Entropy bar
+                     Rectangle {
+                        height: 10px;
+                        background: #444; 
+                        border-radius: 5px;
+                        clip: true;
+                        
+                        Rectangle {
+                            x: 0;
+                            width: parent.width * root.entropy-value;
+                            height: 100%;
+                            background: root.entropy-color;
+                            border-radius: 5px;
+                            animate width { duration: 200ms; easing: ease-out; }
+                            animate background { duration: 200ms; }
+                        }
+                    }
+                    
+                    HorizontalLayout {
+                        alignment: center;
+                        spacing: 5px;
+                        Text { 
+                            text: "Security level : "; 
+                            color: Theme.text-orange; 
+                            font-size: 14px;
+                        }
+                        Text { 
+                            text: root.entropy-text; 
+                            color: root.entropy-color; 
+                            font-size: 14px;
+                        }
+                    }
+                }
+            }
+            
+
+            // Buttons
+            HorizontalBox {
+                spacing: 30px;
+                CustomButton { text: "Generate"; clicked => { root.generate-password(); } }
+                CustomButton { text: root.copy-button-text; clicked => { root.copy-to-clipboard(); } }
+            }
+        }
+        
+        // Blockers and Popups
+        if root.show-options-menu || root.show-help-menu || root.show-theme-menu || root.show-help-popup || root.show-about-popup: TouchArea {
+             clicked => { 
+                 root.show-options-menu = false; 
+                 root.show-help-menu = false; 
+                 root.show-theme-menu = false;
+                 root.show-help-popup = false;
+                 root.show-about-popup = false;
+             }
+        }
+        
+        // Options Menu
+        if root.show-options-menu : Rectangle {
+            x: 20px; y: 20px;
+            width: 180px; height: 100px;
+            background: Theme.popup-bg;
+            border-radius: 4px;
+            border-width: 1px;
+            border-color: Theme.border;
+            
+            VerticalLayout {
+                padding: 5px;
+                MenuItem { text: "Show/hide passphrase"; clicked => { root.show-passphrase = !root.show-passphrase; root.show-options-menu = false; } }
+                MenuItem { text: "Theme >"; clicked => { root.show-theme-menu = !root.show-theme-menu; } } 
+                Rectangle { height: 1px; background: Theme.border; }
+                MenuItem { text: "Exit"; clicked => { root.menu-action("exit"); root.show-options-menu = false; } }
+            }
+        }
+        
+        // Theme SubMenu
+        if root.show-theme-menu : Rectangle {
+            x: 205px; y: 50px; 
+            width: 100px; height: 100px;
+            background: Theme.popup-bg;
+            border-radius: 4px;
+            border-width: 1px;
+            border-color: Theme.border;
+            
+            VerticalLayout {
+                padding: 5px;
+                MenuItem { text: "Light"; clicked => { Theme.mode = "light"; root.show-theme-menu = false; root.show-options-menu = false; root.settings-changed(); } }
+                MenuItem { text: "Dark"; clicked => { Theme.mode = "dark"; root.show-theme-menu = false; root.show-options-menu = false; root.settings-changed(); } }
+                MenuItem { text: "System"; clicked => { Theme.mode = "dark"; root.show-theme-menu = false; root.show-options-menu = false; root.settings-changed(); } }
+            }
+        }
+
+        // Help Menu
+        if root.show-help-menu : Rectangle {
+            x: 100px; y: 20px; 
+            width: 120px; height: 70px;
+            background: Theme.popup-bg;
+            border-radius: 4px;
+            border-width: 1px;
+            border-color: Theme.border;
+            
+            VerticalLayout {
+                padding: 5px;
+                MenuItem { text: "Help"; clicked => { root.show-help-popup = true; root.show-help-menu = false; } }
+                MenuItem { text: "About..."; clicked => { root.show-about-popup = true; root.show-help-menu = false; } }
+            }
+        }
+        
+        // Help Popup
+        if root.show-help-popup : Rectangle {
+            width: 400px; height: 600px;
+            background: Theme.popup-bg;
+            border-radius: 8px;
+            border-width: 1px;
+            border-color: Theme.border;
+            x: (parent.width - 400px)/2;
+            y: (parent.height - 600px)/2;
+            
+            VerticalLayout {
+                padding: 20px;
+                Text { text: "Help"; font-size: 24px; color: Theme.text-main; horizontal-alignment: center; }
+                Rectangle { height: 10px; background: transparent; }
+                Rectangle {
+                    vertical-stretch: 1;
+                    ScrollView {
+                        VerticalLayout {
+                            padding-right: 10px;
+                            spacing: 10px;
+                            
+                            Text { text: "Secure Password Generator"; font-weight: 700; font-size: 18px; color: Theme.text-main; }
+                            Text { text: "Password generator is a powerful and complex password generator!"; color: Theme.text-main; wrap: word-wrap; }
+                            
+                            Text { text: "You can generate a password by selecting the types of characters using switches."; color: Theme.text-main; wrap: word-wrap; }
+                            
+                            Text { text: "- Available Character Types -"; font-weight: 700; color: Theme.text-main; }
+                            Text { text: "• Lowercase\n• Uppercase\n• Numbers\n• Special Characters"; color: Theme.text-main; }
+                            
+                            Text { text: "- Character Length Selection -"; font-weight: 700; color: Theme.text-main; }
+                            Text { text: "You can generate a password ranging from 3 to 128 characters."; color: Theme.text-main; wrap: word-wrap; }
+                            
+                            Text { text: "- Passphrase -"; font-weight: 700; color: Theme.text-main; }
+                            Text { text: "Generating a password using a passphrase results in a 'PSK'. At any time, you can regenerate it by entering the same passphrase."; color: Theme.text-main; wrap: word-wrap; }
+                            
+                            Text { text: "Another, more traditional option is to generate the password randomly by selecting the Random option."; color: Theme.text-main; wrap: word-wrap; }
+                            
+                            Text { text: "- The Copy Button -"; font-weight: 700; color: Theme.text-main; }
+                            Text { text: "It stores the generated password in memory for 15 seconds, making it easier and more secure to use."; color: Theme.text-main; wrap: word-wrap; }
+                            
+                            Text { text: "This freeware was recoded in Rust. \nYou can use and distribute this freeware without any limitations!\nCreated by Stéphane Dudez 2006-2026"; color: Theme.text-main; wrap: word-wrap; }
+                        }
+                    }
+                }
+                Rectangle { height: 10px; background: transparent; }
+                CustomButton { 
+                    text: "Close"; 
+                    width: 100%;
+                    clicked => { root.show-help-popup = false; } 
+                }
+            }
+        }
+
+        // About Popup
+        if root.show-about-popup : Rectangle {
+            width: 400px; height: 250px;
+            background: Theme.popup-bg;
+            border-radius: 8px;
+            border-width: 1px;
+            border-color: Theme.border;
+            x: (parent.width - 400px)/2;
+            y: (parent.height - 250px)/2;
+            
+            VerticalLayout {
+                padding: 20px;
+                Text { text: "About"; font-size: 24px; color: Theme.text-main; horizontal-alignment: center; }
+                Rectangle { height: 20px; background: transparent; }
+                Text { 
+                    text: "Secure Password Generator v1.3\n\nThis freeware is coded in Rust.\nYou can use this freeware and distribute it without any limitation !\n\nCreated by Stéphane Dudez 2006-2026"; 
+                    color: Theme.text-main; 
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                }
+                Rectangle { vertical-stretch: 1; }
+                CustomButton { 
+                    text: "Close"; 
+                    width: 100%;
+                    clicked => { root.show-about-popup = false; } 
+                }
+            }
+        }
+    }
+}
