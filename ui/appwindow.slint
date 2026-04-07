@@ -24,13 +24,13 @@ component CustomButton inherits Rectangle {
     
     border-radius: 6px;
     background: touch.pressed ? Theme.button-pressed : Theme.accent-green;
-    height: 45px;
+    height: 36px;
     
     Text {
         text: root.text;
         color: #ffffff;
         font-weight: 700;
-        font-size: 16px;
+        font-size: 13px;
         vertical-alignment: center;
         horizontal-alignment: center;
     }
@@ -47,23 +47,23 @@ component CustomSwitch inherits Rectangle {
     in-out property <bool> checked;
     callback toggled;
     
-    height: 24px;
+    height: 18px;
     background: transparent;
     
     HorizontalLayout {
-        spacing: 10px;
+        spacing: 6px;
         Rectangle {
-            width: 44px;
-            height: 24px;
-            border-radius: 12px;
+            width: 32px;
+            height: 18px;
+            border-radius: 9px;
             background: root.checked ? Theme.switch-on : Theme.switch-off;
             
             Rectangle {
                 x: root.checked ? parent.width - self.width - 2px : 2px;
                 y: 2px;
-                width: 20px;
-                height: 20px;
-                border-radius: 10px;
+                width: 14px;
+                height: 14px;
+                border-radius: 7px;
                 background: #ffffff;
                 animate x { duration: 200ms; easing: ease-in-out; }
             }
@@ -80,7 +80,7 @@ component CustomSwitch inherits Rectangle {
             text: root.text;
             color: Theme.text-main;
             vertical-alignment: center;
-            font-size: 14px;
+            font-size: 12px;
         }
     }
 }
@@ -90,26 +90,26 @@ component RadioButton inherits Rectangle {
     in property <bool> selected;
     callback clicked;
     
-    height: 30px;
-    width: 100px;
+    height: 24px;
+    width: 80px;
     
     HorizontalLayout {
-        spacing: 10px;
+        spacing: 6px;
         Rectangle {
-            width: 24px;
-            height: 24px;
-            border-radius: 12px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
             border-width: 2px;
             border-color: root.selected ? Theme.accent-green : #666;
             background: transparent;
             y: (parent.height - self.height)/2;
             
             Rectangle {
-                width: 14px;
-                height: 14px;
+                width: 10px;
+                height: 10px;
                 x: (parent.width - self.width)/2;
                 y: (parent.height - self.height)/2;
-                border-radius: 7px;
+                border-radius: 5px;
                 background: Theme.accent-green;
                 visible: root.selected;
             }
@@ -118,7 +118,7 @@ component RadioButton inherits Rectangle {
             text: root.text;
             color: Theme.text-main;
             vertical-alignment: center;
-            font-size: 14px;
+            font-size: 12px;
         }
     }
     TouchArea {
@@ -132,13 +132,13 @@ component CustomSlider inherits Rectangle {
     in property <float> maximum;
     callback changed;
     
-    height: 24px;
+    height: 18px;
     
     // Track
     Rectangle {
-        height: 8px;
+        height: 5px;
         width: parent.width;
-        border-radius: 4px;
+        border-radius: 2px;
         background: Theme.switch-off;
         y: (parent.height - self.height)/2;
         
@@ -147,16 +147,16 @@ component CustomSlider inherits Rectangle {
             x: 0;
             width: (root.value - root.minimum) / (root.maximum - root.minimum) * parent.width;
             height: 100%;
-            border-radius: 4px;
+            border-radius: 2px;
             background: Theme.accent-green;
         }
     }
     
     // Handle
     Rectangle {
-        width: 24px;
-        height: 24px;
-        border-radius: 12px;
+        width: 18px;
+        height: 18px;
+        border-radius: 9px;
         background: Theme.accent-green;
         x: (root.value - root.minimum) / (root.maximum - root.minimum) * (parent.width - self.width);
         y: (parent.height - self.height)/2;
@@ -180,16 +180,16 @@ component CustomSlider inherits Rectangle {
 component MenuItem inherits Rectangle {
     in property <string> text;
     callback clicked;
-    height: 30px;
+    height: 24px;
     background: hover.has-hover ? Theme.accent-green : transparent;
     
     HorizontalLayout {
-        padding-left: 10px;
+        padding-left: 8px;
         Text {
             text: root.text;
             color: Theme.text-main;
             vertical-alignment: center;
-            font-size: 14px;
+            font-size: 12px;
         }
     }
     
@@ -199,11 +199,11 @@ component MenuItem inherits Rectangle {
 }
 
 export component AppWindow inherits Window {
-    title: "Secure Password Generator v1.3";
+    title: "Secure Password Generator v1.4";
     background: Theme.background;
     icon: @image-url("icon.png");
-    min-width: 450px;
-    min-height: 800px;
+    min-width: 380px;
+    min-height: 620px;
     
     // Properties
     in-out property <bool> use-upper: true;
@@ -243,31 +243,31 @@ export component AppWindow inherits Window {
         background: Theme.background;
         
         VerticalBox {
-            padding: 20px;
-            spacing: 20px;
+            padding: 8px;
+            spacing: 8px;
             
             // Header
             Rectangle {
-                height: 40px;
+                height: 30px;
                 background: Theme.panel-background;
-                border-radius: 8px;
+                border-radius: 5px;
 
                 HorizontalLayout {
                     padding-left: 10px;
                     padding-right: 10px;
-                    spacing: 20px;
+                    spacing: 15px;
                     
                     // Options Menu Trigger
                     Rectangle {
-                        width: 70px;
-                        Text { text: "Options"; color: Theme.accent-green; font-size: 16px; font-weight: 500; vertical-alignment: center; }
+                        width: 60px;
+                        Text { text: "Options"; color: Theme.accent-green; font-size: 13px; font-weight: 500; vertical-alignment: center; }
                         TouchArea { clicked => { root.show-options-menu = !root.show-options-menu; root.show-help-menu = false; } }
                     }
                     
                     // Help Menu Trigger (moved to left)
                     Rectangle {
-                        width: 30px;
-                        Text { text: "?"; color: Theme.accent-green; font-size: 16px; font-weight: 500; vertical-alignment: center; horizontal-alignment: center; }
+                        width: 25px;
+                        Text { text: "?"; color: Theme.accent-green; font-size: 13px; font-weight: 500; vertical-alignment: center; horizontal-alignment: center; }
                         TouchArea { clicked => { root.show-help-menu = !root.show-help-menu; root.show-options-menu = false; } }
                     }
                     
@@ -278,26 +278,26 @@ export component AppWindow inherits Window {
             // Passphrase Frame
             Rectangle {
                 background: transparent;
-                border-radius: 8px;
+                border-radius: 6px;
                 border-width: 1px;
                 border-color: #555;
                 
                 VerticalBox {
-                    padding: 10px;
-                    spacing: 10px;
+                    padding: 6px; 
+                    spacing: 4px; 
                     Text { 
                         text: "Passphrase :"; 
                         color: Theme.text-orange; 
                         horizontal-alignment: center; 
-                        font-size: 16px;
+                        font-size: 12px;
                     }
                     
                     HorizontalLayout {
-                        height: 45px;
+                        height: 34px;
                         
                         Rectangle {
                             background: Theme.control-bg;
-                            border-radius: 6px;
+                            border-radius: 5px;
                             border-width: 1px;
                             border-color: #555;
                             horizontal-stretch: 1;
@@ -306,10 +306,10 @@ export component AppWindow inherits Window {
                                 text <=> root.passphrase;
                                 input-type: root.show-passphrase ? text : password;
                                 color: Theme.text-main;
-                                font-size: 16px;
+                                font-size: 13px;
                                 vertical-alignment: center;
-                                x: 10px;
-                                width: parent.width - 50px;
+                                x: 8px;
+                                width: parent.width - 35px;
                                 enabled: root.mode == "Fixed";
                                 single-line: true;
                                 accepted => { root.generate-password(); }
@@ -318,16 +318,16 @@ export component AppWindow inherits Window {
                             if (root.passphrase == "") : Text {
                                 text: "Enter passphrase...";
                                 color: #777;
-                                x: 10px;
+                                x: 8px;
                                 vertical-alignment: center;
                                 visible: root.mode == "Fixed";
-                                font-size: 16px;
+                                font-size: 13px;
                             }
                             
                             // Eye Button Inside
                             Rectangle {
-                                x: parent.width - 40px;
-                                width: 40px;
+                                x: parent.width - 30px;
+                                width: 30px;
                                 height: 100%;
                                 background: transparent;
                                 Text { 
@@ -335,7 +335,7 @@ export component AppWindow inherits Window {
                                     color: root.show-passphrase ? Theme.accent-green : #888; 
                                     vertical-alignment: center; 
                                     horizontal-alignment: center;
-                                    font-size: 20px;
+                                    font-size: 16px;
                                 }
                                 TouchArea {
                                     clicked => { root.show-passphrase = !root.show-passphrase; }
@@ -349,21 +349,21 @@ export component AppWindow inherits Window {
             // Options Frame (Switches + Icon + Length)
             Rectangle {
                 background: transparent;
-                border-radius: 8px;
+                border-radius: 6px;
                 border-width: 1px;
                 border-color: #555;
                 
                 VerticalBox {
-                    padding: 10px;
-                    spacing: 15px;
+                    padding: 6px;
+                    spacing: 8px; 
                     
                     // Options Grid
                     HorizontalLayout {
-                        spacing: 20px;
+                        spacing: 12px; 
                         
                         // Left Column: Switches
                         VerticalLayout {
-                            spacing: 15px;
+                            spacing: 8px; 
                             alignment: start;
                             horizontal-stretch: 1;
                             
@@ -373,7 +373,7 @@ export component AppWindow inherits Window {
                             CustomSwitch { text: "Special characters"; checked <=> root.use-special; toggled => { root.settings-changed(); } }
                             
                             Rectangle {
-                                height: 35px;
+                                height: 26px;
                                 background: Theme.control-bg;
                                 border-radius: 4px;
                                 border-width: 1px;
@@ -394,22 +394,22 @@ export component AppWindow inherits Window {
                         // Right Column: Logo
                         VerticalLayout {
                             horizontal-stretch: 1;
-                            spacing: 2px;
+                            spacing: 0px;
                             alignment: center;
                             
                             Text {
                                 text: "Password\nGenerator";
                                 color: Theme.text-green;
-                                font-size: 24px;
+                                font-size: 16px;
                                 font-family: "Bauhaus 93";
                                 font-weight: 700;
                                 horizontal-alignment: center;
-                                width: 140px;
+                                width: 90px; 
                             }
                             
                             Rectangle {
-                                width: 140px;
-                                height: 140px;
+                                width: 80px;
+                                height: 80px;
                                 
                                 Image {
                                     source: @image-url("logo.png");
@@ -421,14 +421,14 @@ export component AppWindow inherits Window {
                         }
                     }
 
-                    // Length (Moved Inside Frame)
+                    // Length
                     VerticalLayout {
-                        spacing: 10px;
+                        spacing: 4px;
                         Text { 
                             text: "Length : " + Math.round(root.length); 
                             color: Theme.text-orange; 
                             horizontal-alignment: center; 
-                            font-size: 16px;
+                            font-size: 12px;
                         }
                         
                         CustomSlider {
@@ -444,23 +444,23 @@ export component AppWindow inherits Window {
             // Mode
             Rectangle {
                 background: Theme.panel-background;
-                border-radius: 10px;
-                height: 100px;
+                border-radius: 6px;
+                height: 60px;
                 
                 VerticalLayout {
                     alignment: center;
-                    spacing: 15px;
+                    spacing: 6px; 
                     
                     Text { 
                         text: "Mode :"; 
                         color: Theme.text-orange; 
                         horizontal-alignment: center; 
-                        font-size: 16px;
+                        font-size: 12px;
                     }
                     
                     HorizontalLayout {
                         alignment: center;
-                        spacing: 40px;
+                        spacing: 30px;
                         RadioButton { 
                             text: "Fixed"; 
                             selected: root.mode == "Fixed"; 
@@ -478,30 +478,30 @@ export component AppWindow inherits Window {
             // Password Output
             Rectangle {
                 background: Theme.panel-background;
-                border-radius: 10px;
-                vertical-stretch: 0.5; 
+                border-radius: 6px;
+                vertical-stretch: 1; 
                 
                 VerticalBox {
-                    padding: 15px;
-                    spacing: 15px;
+                    padding: 8px; 
+                    spacing: 6px; 
                     
                     Text { 
                         text: "Password :"; 
                         color: Theme.text-orange; 
                         horizontal-alignment: center; 
-                        font-size: 16px;
+                        font-size: 12px;
                     }
                     
                     Rectangle {
                         background: Theme.control-bg; 
-                        border-radius: 8px;
+                        border-radius: 6px;
                         vertical-stretch: 1;
                         height: 110px;
                         
                         // Result Text
                         Rectangle {
-                            x: 10px; width: parent.width - 20px;
-                            y: 10px; height: parent.height - 25px;
+                            x: 6px; width: parent.width - 12px;
+                            y: 6px; height: parent.height - 15px;
                             
                             ScrollView {
                                 width: 100%;
@@ -511,7 +511,7 @@ export component AppWindow inherits Window {
                                 Text {
                                     width: parent.width;
                                     text: root.generated-password;
-                                    font-size: 18px;
+                                    font-size: 14px;
                                     wrap: word-wrap;
                                     color: Theme.text-main;
                                     horizontal-alignment: center;
@@ -521,20 +521,20 @@ export component AppWindow inherits Window {
                         
                         // Green bar
                         Rectangle {
-                            y: parent.height - 10px;
-                            height: 10px;
+                            y: parent.height - 5px;
+                            height: 5px;
                             background: Theme.accent-green;
                             width: 100%;
-                            border-bottom-left-radius: 8px;
-                            border-bottom-right-radius: 8px;
+                            border-bottom-left-radius: 6px;
+                            border-bottom-right-radius: 6px;
                         }
                     }
                     
                     // Entropy bar
                      Rectangle {
-                        height: 10px;
+                        height: 6px; 
                         background: #444; 
-                        border-radius: 5px;
+                        border-radius: 3px;
                         clip: true;
                         
                         Rectangle {
@@ -542,7 +542,7 @@ export component AppWindow inherits Window {
                             width: parent.width * root.entropy-value;
                             height: 100%;
                             background: root.entropy-color;
-                            border-radius: 5px;
+                            border-radius: 3px;
                             animate width { duration: 200ms; easing: ease-out; }
                             animate background { duration: 200ms; }
                         }
@@ -554,21 +554,20 @@ export component AppWindow inherits Window {
                         Text { 
                             text: "Security level : "; 
                             color: Theme.text-orange; 
-                            font-size: 14px;
+                            font-size: 12px; 
                         }
                         Text { 
                             text: root.entropy-text; 
                             color: root.entropy-color; 
-                            font-size: 14px;
+                            font-size: 12px; 
                         }
                     }
                 }
             }
             
-
             // Buttons
             HorizontalBox {
-                spacing: 30px;
+                spacing: 15px; 
                 CustomButton { text: "Generate"; clicked => { root.generate-password(); } }
                 CustomButton { text: root.copy-button-text; clicked => { root.copy-to-clipboard(); } }
             }
@@ -588,133 +587,18 @@ export component AppWindow inherits Window {
         // Options Menu
         if root.show-options-menu : Rectangle {
             x: 20px; y: 20px;
-            width: 180px; height: 100px;
+            width: 150px; height: 85px;
             background: Theme.popup-bg;
             border-radius: 4px;
             border-width: 1px;
             border-color: Theme.border;
             
             VerticalLayout {
-                padding: 5px;
+                padding: 4px;
                 MenuItem { text: "Show/hide passphrase"; clicked => { root.show-passphrase = !root.show-passphrase; root.show-options-menu = false; } }
                 MenuItem { text: "Theme >"; clicked => { root.show-theme-menu = !root.show-theme-menu; } } 
                 Rectangle { height: 1px; background: Theme.border; }
                 MenuItem { text: "Exit"; clicked => { root.menu-action("exit"); root.show-options-menu = false; } }
-            }
-        }
-        
-        // Theme SubMenu
-        if root.show-theme-menu : Rectangle {
-            x: 205px; y: 50px; 
-            width: 100px; height: 100px;
-            background: Theme.popup-bg;
-            border-radius: 4px;
-            border-width: 1px;
-            border-color: Theme.border;
-            
-            VerticalLayout {
-                padding: 5px;
-                MenuItem { text: "Light"; clicked => { Theme.mode = "light"; root.show-theme-menu = false; root.show-options-menu = false; root.settings-changed(); } }
-                MenuItem { text: "Dark"; clicked => { Theme.mode = "dark"; root.show-theme-menu = false; root.show-options-menu = false; root.settings-changed(); } }
-                MenuItem { text: "System"; clicked => { Theme.mode = "dark"; root.show-theme-menu = false; root.show-options-menu = false; root.settings-changed(); } }
-            }
-        }
-
-        // Help Menu
-        if root.show-help-menu : Rectangle {
-            x: 100px; y: 20px; 
-            width: 120px; height: 70px;
-            background: Theme.popup-bg;
-            border-radius: 4px;
-            border-width: 1px;
-            border-color: Theme.border;
-            
-            VerticalLayout {
-                padding: 5px;
-                MenuItem { text: "Help"; clicked => { root.show-help-popup = true; root.show-help-menu = false; } }
-                MenuItem { text: "About..."; clicked => { root.show-about-popup = true; root.show-help-menu = false; } }
-            }
-        }
-        
-        // Help Popup
-        if root.show-help-popup : Rectangle {
-            width: 400px; height: 600px;
-            background: Theme.popup-bg;
-            border-radius: 8px;
-            border-width: 1px;
-            border-color: Theme.border;
-            x: (parent.width - 400px)/2;
-            y: (parent.height - 600px)/2;
-            
-            VerticalLayout {
-                padding: 20px;
-                Text { text: "Help"; font-size: 24px; color: Theme.text-main; horizontal-alignment: center; }
-                Rectangle { height: 10px; background: transparent; }
-                Rectangle {
-                    vertical-stretch: 1;
-                    ScrollView {
-                        VerticalLayout {
-                            padding-right: 10px;
-                            spacing: 10px;
-                            
-                            Text { text: "Secure Password Generator"; font-weight: 700; font-size: 18px; color: Theme.text-main; }
-                            Text { text: "Password generator is a powerful and complex password generator!"; color: Theme.text-main; wrap: word-wrap; }
-                            
-                            Text { text: "You can generate a password by selecting the types of characters using switches."; color: Theme.text-main; wrap: word-wrap; }
-                            
-                            Text { text: "- Available Character Types -"; font-weight: 700; color: Theme.text-main; }
-                            Text { text: "• Lowercase\n• Uppercase\n• Numbers\n• Special Characters"; color: Theme.text-main; }
-                            
-                            Text { text: "- Character Length Selection -"; font-weight: 700; color: Theme.text-main; }
-                            Text { text: "You can generate a password ranging from 3 to 128 characters."; color: Theme.text-main; wrap: word-wrap; }
-                            
-                            Text { text: "- Passphrase -"; font-weight: 700; color: Theme.text-main; }
-                            Text { text: "Generating a password using a passphrase results in a 'PSK'. At any time, you can regenerate it by entering the same passphrase."; color: Theme.text-main; wrap: word-wrap; }
-                            
-                            Text { text: "Another, more traditional option is to generate the password randomly by selecting the Random option."; color: Theme.text-main; wrap: word-wrap; }
-                            
-                            Text { text: "- The Copy Button -"; font-weight: 700; color: Theme.text-main; }
-                            Text { text: "It stores the generated password in memory for 15 seconds, making it easier and more secure to use."; color: Theme.text-main; wrap: word-wrap; }
-                            
-                            Text { text: "This freeware was recoded in Rust. \nYou can use and distribute this freeware without any limitations!\nCreated by Stéphane Dudez 2006-2026"; color: Theme.text-main; wrap: word-wrap; }
-                        }
-                    }
-                }
-                Rectangle { height: 10px; background: transparent; }
-                CustomButton { 
-                    text: "Close"; 
-                    width: 100%;
-                    clicked => { root.show-help-popup = false; } 
-                }
-            }
-        }
-
-        // About Popup
-        if root.show-about-popup : Rectangle {
-            width: 400px; height: 250px;
-            background: Theme.popup-bg;
-            border-radius: 8px;
-            border-width: 1px;
-            border-color: Theme.border;
-            x: (parent.width - 400px)/2;
-            y: (parent.height - 250px)/2;
-            
-            VerticalLayout {
-                padding: 20px;
-                Text { text: "About"; font-size: 24px; color: Theme.text-main; horizontal-alignment: center; }
-                Rectangle { height: 20px; background: transparent; }
-                Text { 
-                    text: "Secure Password Generator v1.3\n\nThis freeware is coded in Rust.\nYou can use this freeware and distribute it without any limitation !\n\nCreated by Stéphane Dudez 2006-2026"; 
-                    color: Theme.text-main; 
-                    wrap: word-wrap;
-                    horizontal-alignment: center;
-                }
-                Rectangle { vertical-stretch: 1; }
-                CustomButton { 
-                    text: "Close"; 
-                    width: 100%;
-                    clicked => { root.show-about-popup = false; } 
-                }
             }
         }
     }

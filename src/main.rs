@@ -89,26 +89,33 @@ fn main() -> Result<(), slint::PlatformError> {
     // Centrer la fenêtre
     #[cfg(target_os = "windows")]
     {
-        use slint::PhysicalPosition;
-        
-        // Attendre que la fenêtre soit affichée pour obtenir sa taille réelle
         ui.show().ok();
         
-        // Obtenir les dimensions de l'écran principal (approximation pour Windows)
-        let screen_width = 1920.0;
-        let screen_height = 1080.0;
-        
-        // Obtenir la taille de la fenêtre
-        let window_size = ui.window().size();
-        let window_width = window_size.width as f32;
-        let window_height = window_size.height as f32;
-        
-        // Calculer la position centrée
-        let x = ((screen_width - window_width) / 2.0) as i32;
-        let y = ((screen_height - window_height) / 2.0) as i32;
-        
-        // Positionner la fenêtre
-        ui.window().set_position(PhysicalPosition::new(x, y));
+        let ui_handle = ui.as_weak();
+        slint::Timer::single_shot(std::time::Duration::from_millis(150), move || {
+            if let Some(ui) = ui_handle.upgrade() {
+                use slint::LogicalPosition;
+                use windows_sys::Win32::Graphics::Gdi::{GetDC, ReleaseDC, GetDeviceCaps, HORZRES, VERTRES};
+                
+                let hdc = unsafe { GetDC(0) };
+                let screen_width_phys = unsafe { GetDeviceCaps(hdc, HORZRES as i32) } as f32;
+                let screen_height_phys = unsafe { GetDeviceCaps(hdc, VERTRES as i32) } as f32;
+                unsafe { ReleaseDC(0, hdc) };
+                
+                let scale_factor = ui.window().scale_factor();
+                let screen_width_log = screen_width_phys / scale_factor;
+                let screen_height_log = screen_height_phys / scale_factor;
+                
+                // Taille logique de la fenêtre v1.4
+                let window_width_log = 380.0;
+                let window_height_log = 620.0;
+                
+                let x = (screen_width_log - window_width_log) / 2.0;
+                let y = (screen_height_log - window_height_log) / 2.0;
+                
+                ui.window().set_position(LogicalPosition::new(x, y));
+            }
+        });
     }
 
     let ui_handle = ui.as_weak();
@@ -159,7 +166,6 @@ fn main() -> Result<(), slint::PlatformError> {
                 return;
             }
             
-            // PBKDF2 avec HMAC-SHA512
             let mut key = [0u8; 64]; // 512 bits
             let iterations = 100_000;
             pbkdf2::<Hmac<Sha512>>(passphrase.as_bytes(), b"MySecurePassword", iterations, &mut key).expect("PBKDF2 failed");
@@ -169,9 +175,7 @@ fn main() -> Result<(), slint::PlatformError> {
             let hash_chars: Vec<char> = hash_b64.chars().collect();
             
             let mut final_pass = String::new();
-            // On utilise le hash pour piocher dans le charset
             for i in 0..length {
-                // Si la longueur dépasse le hash, on boucle sur le hash
                 let c = hash_chars[i % hash_chars.len()];
                 let index = (c as usize) % charset_chars.len();
                 final_pass.push(charset_chars[index]);
@@ -188,7 +192,6 @@ fn main() -> Result<(), slint::PlatformError> {
                 .collect()
         };
 
-        // Calcul de l'entropie
         let charset_len = charset.chars().count();
         let entropy = (length as f64) * (charset_len as f64).log2();
         
@@ -208,7 +211,7 @@ fn main() -> Result<(), slint::PlatformError> {
         ui.set_entropy_color(slint::Brush::SolidColor(slint::Color::from_rgb_u8(r, g, b)));
         
         ui.set_generated_password(password.into());
-        ui.set_copy_button_text("Copy".into()); // Reset text
+        ui.set_copy_button_text("Copy".into()); 
     });
 
     let ui_handle = ui.as_weak();
@@ -232,7 +235,6 @@ fn main() -> Result<(), slint::PlatformError> {
                             ui.set_copy_button_text(format!("Copied! ({}s)", seconds).into());
                         } else {
                             ui.set_copy_button_text("Copy".into());
-                            // Clear clipboard
                             if let Ok(mut clipboard) = Clipboard::new() {
                                 let _ = clipboard.set_text("".to_string());
                             }
