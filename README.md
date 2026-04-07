@@ -2,6 +2,10 @@
 
 **Secure Password Generator** is a modern, ultra-compact, and secure application developed in **Rust** using the **Slint** GUI framework. It allows you to generate strong passwords using two distinct methods while providing real-time strength analysis.
 
+<p align="center">
+  <img src="screenshot.png" alt="alt text" width="300">
+</p>
+
 ## 🚀 Key Features
 
 ### 1. Two Generation Modes
