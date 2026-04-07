@@ -86,6 +86,14 @@ fn main() -> Result<(), slint::PlatformError> {
     ui.set_mode(config.mode.clone().into());
     ui.set_theme_mode(config.theme.clone().into());
     
+    // Détecter le thème système
+    let is_dark = match dark_light::detect() {
+        dark_light::Mode::Dark => true,
+        dark_light::Mode::Light => false,
+        dark_light::Mode::Default => false,
+    };
+    ui.set_system_is_dark(is_dark);
+    
     // Centrer la fenêtre
     #[cfg(target_os = "windows")]
     {

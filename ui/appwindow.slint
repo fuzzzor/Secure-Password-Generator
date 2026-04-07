@@ -3,19 +3,22 @@ import { Button, HorizontalBox, VerticalBox, TextEdit, ScrollView } from "std-wi
 global Theme {
     in-out property <string> mode: "dark";
     
-    out property <color> background: mode == "light" ? #f0f0f0 : #1e1e1e;
-    out property <color> panel-background: mode == "light" ? #ffffff : #2b2b2b;
-    out property <color> text-orange: mode == "light" ? #d35400 : #E05A47;
+    out property <bool> is-dark: mode == "dark" || (mode == "system" && system-is-dark);
+    in property <bool> system-is-dark: false;
+    
+    out property <color> background: !is-dark ? #f0f0f0 : #1e1e1e;
+    out property <color> panel-background: !is-dark ? #ffffff : #2b2b2b;
+    out property <color> text-orange: !is-dark ? #d35400 : #E05A47;
     out property <color> text-green: #2ecc71;
     out property <color> accent-green: #2ecc71;
-    out property <color> control-bg: mode == "light" ? #e0e0e0 : #333333;
-    out property <color> text-main: mode == "light" ? #000000 : #ffffff;
-    out property <color> text-white: mode == "light" ? #000000 : #ffffff;
+    out property <color> control-bg: !is-dark ? #e0e0e0 : #333333;
+    out property <color> text-main: !is-dark ? #000000 : #ffffff;
+    out property <color> text-white: !is-dark ? #000000 : #ffffff;
     out property <color> switch-on: #2ecc71;
-    out property <color> switch-off: mode == "light" ? #bdc3c7 : #7f8c8d;
+    out property <color> switch-off: !is-dark ? #bdc3c7 : #7f8c8d;
     out property <color> button-pressed: #219150;
-    out property <color> popup-bg: mode == "light" ? #f0f0f0 : #000000;
-    out property <color> border: mode == "light" ? #cccccc : #555555;
+    out property <color> popup-bg: !is-dark ? #f0f0f0 : #1e1e1e;
+    out property <color> border: !is-dark ? #cccccc : #555555;
 }
 
 component CustomButton inherits Rectangle {
@@ -232,6 +235,7 @@ export component AppWindow inherits Window {
     in-out property <bool> show-about-popup: false;
 
     in-out property <string> theme-mode <=> Theme.mode;
+    in-out property <bool> system-is-dark <=> Theme.system-is-dark;
 
     // Callbacks
     callback generate-password();
@@ -575,6 +579,7 @@ export component AppWindow inherits Window {
         
         // Blockers and Popups
         if root.show-options-menu || root.show-help-menu || root.show-theme-menu || root.show-help-popup || root.show-about-popup: TouchArea {
+             width: 100%; height: 100%;
              clicked => { 
                  root.show-options-menu = false; 
                  root.show-help-menu = false; 
@@ -586,8 +591,8 @@ export component AppWindow inherits Window {
         
         // Options Menu
         if root.show-options-menu : Rectangle {
-            x: 20px; y: 20px;
-            width: 150px; height: 85px;
+            x: 10px; y: 40px;
+            width: 170px; height: 85px;
             background: Theme.popup-bg;
             border-radius: 4px;
             border-width: 1px;
@@ -599,6 +604,98 @@ export component AppWindow inherits Window {
                 MenuItem { text: "Theme >"; clicked => { root.show-theme-menu = !root.show-theme-menu; } } 
                 Rectangle { height: 1px; background: Theme.border; }
                 MenuItem { text: "Exit"; clicked => { root.menu-action("exit"); root.show-options-menu = false; } }
+            }
+        }
+
+        // Theme Menu (Sub-menu)
+        if root.show-theme-menu : Rectangle {
+            x: 170px; y: 65px;
+            width: 100px; height: 85px;
+            background: Theme.popup-bg;
+            border-radius: 4px;
+            border-width: 1px;
+            border-color: Theme.border;
+            
+            VerticalLayout {
+                padding: 4px;
+                MenuItem { text: "Light"; clicked => { root.theme-mode = "light"; root.show-theme-menu = false; root.settings-changed(); } }
+                MenuItem { text: "Dark"; clicked => { root.theme-mode = "dark"; root.show-theme-menu = false; root.settings-changed(); } }
+                MenuItem { text: "System"; clicked => { root.theme-mode = "system"; root.show-theme-menu = false; root.settings-changed(); } }
+            }
+        }
+
+        // Help Menu
+        if root.show-help-menu : Rectangle {
+            x: 80px; y: 40px;
+            width: 100px; height: 60px;
+            background: Theme.popup-bg;
+            border-radius: 4px;
+            border-width: 1px;
+            border-color: Theme.border;
+            
+            VerticalLayout {
+                padding: 4px;
+                MenuItem { text: "Help"; clicked => { root.show-help-popup = true; root.show-help-menu = false; } }
+                MenuItem { text: "About"; clicked => { root.show-about-popup = true; root.show-help-menu = false; } }
+            }
+        }
+
+        // Help Popup
+        if root.show-help-popup : Rectangle {
+            width: 340px; height: 500px;
+            background: Theme.panel-background;
+            border-radius: 8px;
+            border-width: 2px;
+            border-color: Theme.accent-green;
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            
+            VerticalBox {
+                padding: 15px;
+                spacing: 10px;
+                Text { text: "Help"; color: Theme.accent-green; font-size: 18px; font-weight: 700; horizontal-alignment: center; }
+                Rectangle {
+                    background: Theme.control-bg;
+                    border-radius: 4px;
+                    vertical-stretch: 1;
+                    ScrollView {
+                        VerticalLayout {
+                            padding: 10px;
+                            Text {
+                                text: "Password Generator is a powerful and complex password generator!\n\nYou can generate a password by selecting the types of characters using switches.\n\n- Available Character Types -\n• Lowercase\n• Uppercase\n• Numbers\n• Special Characters\n\n- Character Length Selection -\nYou can generate a password ranging from 3 to 128 characters.\n\n- Passphrase -\nGenerating a password using a passphrase results in a 'PSK'. At any time, you can regenerate it by entering the same passphrase.\n\nAnother, more traditional option is to generate the password randomly by selecting the <Random> option.\n\n- The <Copy> Button -\nIt stores the generated password in memory for 15 seconds, making it easier and more secure to use.\n\nCreated by Stéphane Dudez 2006-2025";
+                                color: Theme.text-main;
+                                font-size: 13px;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+                }
+                CustomButton { text: "Close"; clicked => { root.show-help-popup = false; } }
+            }
+        }
+
+        // About Popup
+        if root.show-about-popup : Rectangle {
+            width: 300px; height: 220px;
+            background: Theme.panel-background;
+            border-radius: 8px;
+            border-width: 2px;
+            border-color: Theme.accent-green;
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            
+            VerticalBox {
+                padding: 20px;
+                spacing: 15px;
+                Text { text: "About"; color: Theme.accent-green; font-size: 20px; font-weight: 700; horizontal-alignment: center; }
+                Text { 
+                    text: "Secure Password Generator v1.4\n\nThis freeware is coded in Rust.\nYou can use this freeware and distribute it without any limitation!\n\nCreated by Stéphane Dudez 2006-2026"; 
+                    color: Theme.text-main; 
+                    horizontal-alignment: center; 
+                    wrap: word-wrap;
+                    font-size: 13px;
+                }
+                CustomButton { text: "Thanks"; clicked => { root.show-about-popup = false; } }
             }
         }
     }
